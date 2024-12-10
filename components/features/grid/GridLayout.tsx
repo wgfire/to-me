@@ -1,9 +1,9 @@
-import { ReactElement } from 'react';
-import { Responsive, WidthProvider } from 'react-grid-layout';
+'use client';
+
+import React from 'react';
+import ReactGridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface GridItem {
   i: string;
@@ -11,37 +11,50 @@ interface GridItem {
   y: number;
   w: number;
   h: number;
-  component: ReactElement;
+  component: React.ReactElement;
 }
 
 interface GridLayoutProps {
   items: GridItem[];
-  onLayoutChange?: (layout: any) => void;
+  onLayoutChange?: (layout: ReactGridLayout.Layout[]) => void;
+  onItemSizeChange?: (itemId: string, width: number, height: number) => void;
 }
 
-export const GridLayout = ({ items, onLayoutChange }: GridLayoutProps) => {
-  const layouts = {
-    lg: items.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })),
+export const GridLayout = ({ items, onLayoutChange, onItemSizeChange }: GridLayoutProps) => {
+  const handleSizeChange = (itemId: string) => (width: number, height: number) => {
+    onItemSizeChange?.(itemId, width, height);
   };
 
+  const layout = items.map(({ i, x, y, w, h }) => ({
+    i,
+    x,
+    y,
+    w,
+    h,
+    isResizable: false, // Disable default resize handle
+  }));
+
+  const gridItems = items.map((item) => {
+    return (
+      <div key={item.i} className="bg-white rounded-lg shadow-sm overflow-hidden">
+        {item.component}
+      </div>
+    );
+  });
+
   return (
-    <div className="h-full w-full p-4">
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={30}
-        onLayoutChange={onLayoutChange}
-        isResizable={true}
-        isDraggable={true}
-      >
-        {items.map((item) => (
-          <div key={item.i} className="bg-white rounded-lg shadow-md p-4">
-            {item.component}
-          </div>
-        ))}
-      </ResponsiveGridLayout>
-    </div>
+    <ReactGridLayout
+      className="layout"
+      layout={layout}
+      cols={12}
+      rowHeight={60}
+      width={1200}
+      onLayoutChange={onLayoutChange}
+      margin={[16, 16]}
+      containerPadding={[16, 16]}
+      isDraggable={true}
+    >
+      {gridItems}
+    </ReactGridLayout>
   );
 };

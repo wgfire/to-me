@@ -5,12 +5,24 @@ import { Profile } from '@/components/layout/Profile';
 import { GridLayout } from '@/components/features/grid/GridLayout';
 import { FloatingBar } from '@/components/ui/FloatingBar';
 import { TextComponent } from '@/components/features/grid/TextComponent';
+import { GithubComponent } from '@/components/features/grid/GithubComponent';
+
+// Define the interface for component properties
+interface ComponentProps {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  component: React.ReactElement;
+}
 
 export default function Home() {
-  const [items, setItems] = useState([]);
+  // Update the items state to use the defined interface
+  const [items, setItems] = useState<ComponentProps[]>([]);
 
   const handleAddTextComponent = () => {
-    const newItem = {
+    const newItem: ComponentProps = {
       i: `text-${Date.now()}`,
       x: 0,
       y: Infinity, // Puts it at the bottom
@@ -19,6 +31,26 @@ export default function Home() {
       component: <TextComponent />,
     };
     setItems([...items, newItem]);
+  };
+
+  const handleAddGithubComponent = () => {
+    const newItem: ComponentProps = {
+      i: `github-${Date.now()}`,
+      x: 0,
+      y: Infinity,
+      w: 6,
+      h: 2,
+      component: <GithubComponent username="wgfire" onSizeChange={(width, height) => handleItemSizeChange(newItem.i, width, height)} />,
+    };
+    setItems([...items, newItem]);
+  };
+
+  const handleItemSizeChange = (itemId: string, width: number, height: number) => {
+    setItems(items.map(item => 
+      item.i === itemId 
+        ? { ...item, w: width, h: height }
+        : item
+    ));
   };
 
   return (
@@ -33,13 +65,16 @@ export default function Home() {
           />
         </div>
         {/* Grid Section - Full width on mobile, 3/4 width on desktop */}
-        <div className="flex-1 md:w-3/4">
-          <GridLayout items={items} />
+        <div className="flex-1 p-4">
+          <FloatingBar onAddTextComponent={handleAddTextComponent} onAddGithubComponent={handleAddGithubComponent} />
+          <GridLayout 
+            items={items} 
+            onItemSizeChange={handleItemSizeChange}
+          />
         </div>
       </div>
 
       {/* Floating Bar */}
-      <FloatingBar onAddTextComponent={handleAddTextComponent} />
     </div>
   );
 }
